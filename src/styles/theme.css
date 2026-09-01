@@ -1,0 +1,241 @@
+:root {
+  --bg: #050014;
+  --panel: rgba(10, 10, 46, 0.85);
+  --panel-border: #1b2a6b;
+  --grid: #1b2a6b;
+  --cyan: #00f0ff;
+  --magenta: #ff00e6;
+  --yellow: #ffe600;
+  --green: #39ff14;
+  --orange: #ff6a00;
+  --red: #ff2a4a;
+  --white: #ffffff;
+  --label: #7f8cff;
+  --dim: #56609a;
+  --font: 'Press Start 2P', 'Courier New', monospace;
+}
+
+/* ---- neon text -------------------------------------------------------- */
+
+.neon {
+  text-shadow:
+    0 0 2px currentColor,
+    0 0 10px currentColor,
+    0 0 24px rgba(255, 255, 255, 0.25);
+}
+
+.c-cyan {
+  color: var(--cyan);
+}
+.c-magenta {
+  color: var(--magenta);
+}
+.c-yellow {
+  color: var(--yellow);
+}
+.c-green {
+  color: var(--green);
+}
+.c-orange {
+  color: var(--orange);
+}
+.c-red {
+  color: var(--red);
+}
+.c-dim {
+  color: var(--dim);
+}
+.c-label {
+  color: var(--label);
+}
+
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.flicker {
+  animation: flicker 6s linear infinite;
+}
+
+body.reduce-fx .flicker,
+body.reduce-fx .blink {
+  animation: none;
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  41% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0.75;
+  }
+  43% {
+    opacity: 1;
+  }
+  71% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 0.65;
+  }
+  73% {
+    opacity: 1;
+  }
+  74% {
+    opacity: 0.85;
+  }
+  75% {
+    opacity: 1;
+  }
+}
+
+/* ---- panels ----------------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 3px solid var(--panel-border);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 240, 255, 0.15),
+    0 0 18px rgba(0, 240, 255, 0.12);
+  padding: 14px 16px;
+}
+
+.panel-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--label);
+  margin: 0 0 10px;
+}
+
+/* ---- buttons ---------------------------------------------------------- */
+
+.btn {
+  --btn-color: var(--cyan);
+  display: inline-block;
+  padding: 12px 20px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--btn-color);
+  background: rgba(0, 0, 0, 0.35);
+  border: 3px solid var(--btn-color);
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--btn-color) 55%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--btn-color) 25%, transparent);
+  text-shadow: 0 0 6px var(--btn-color);
+  transition:
+    background-color 80ms,
+    color 80ms,
+    transform 80ms;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible {
+  background: var(--btn-color);
+  color: #050014;
+  text-shadow: none;
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  --btn-color: var(--dim);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-magenta {
+  --btn-color: var(--magenta);
+}
+.btn-yellow {
+  --btn-color: var(--yellow);
+}
+.btn-green {
+  --btn-color: var(--green);
+}
+.btn-red {
+  --btn-color: var(--red);
+}
+.btn-small {
+  padding: 8px 12px;
+  font-size: 10px;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ---- toggles ---------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--label);
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--panel-border);
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--cyan);
+  outline: none;
+}
+
+.chip .led {
+  width: 10px;
+  height: 10px;
+  background: #2a2a3a;
+  box-shadow: inset 0 0 0 2px #000;
+}
+
+.chip.on {
+  color: var(--white);
+}
+
+.chip.on .led {
+  background: var(--green);
+  box-shadow:
+    0 0 6px var(--green),
+    0 0 12px var(--green);
+}
+
+/* ---- misc ------------------------------------------------------------- */
+
+.hint {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.hint kbd {
+  font: inherit;
+  color: var(--label);
+  border: 1px solid var(--dim);
+  padding: 1px 4px;
+}
+
+.pixel-border {
+  outline: 3px solid var(--panel-border);
+  outline-offset: 3px;
+}
