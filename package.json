@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ai:bench": "node scripts/ai-bench.ts"
+    "ai:bench": "node scripts/ai-bench.ts",
+    "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {
     "@fontsource/press-start-2p": "5.3.0",

@@ -9,6 +9,11 @@ Retro 80s neon-arcade Battleship vs. AI. Vite + TypeScript + Canvas 2D + Web Aud
 - `npm test` — Vitest, runs `tests/**/*.test.ts`
 - `npm run build` — typecheck + production bundle in `dist/`
 - `npm run ai:bench` — simulate each AI tier on random boards and print average shots-to-win (Node runs `.ts` natively)
+- `npm run smoke` — headless Chrome click-through of every screen incl. a full game; needs the dev server running and Google Chrome (override with `CHROME=/path`). Screenshots in `.smoke/`.
+
+## Verification checklist
+
+Run `npm run typecheck && npm test && npm run build`, then `npm run smoke` against a running dev server. In dev builds `window.__game` (current match) and `window.__debug` (audio/music/sfx/settings) are exposed for poking around; they are not present in production builds.
 
 ## Layout
 

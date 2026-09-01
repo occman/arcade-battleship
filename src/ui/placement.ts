@@ -236,6 +236,11 @@ export const placementScreen: ScreenFactory = (app, root) => {
   canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('click', onClick);
   canvas.addEventListener('contextmenu', onContextMenu);
+  const fitBoard = (): void => {
+    const next = Math.min(44, fitCellSize(window.innerWidth - 420, 1));
+    if (next !== bc.cell) renderer.resize(next);
+  };
+  window.addEventListener('resize', fitBoard);
 
   const offKey = onKey((e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -289,6 +294,7 @@ export const placementScreen: ScreenFactory = (app, root) => {
   return {
     destroy: () => {
       offKey();
+      window.removeEventListener('resize', fitBoard);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('click', onClick);

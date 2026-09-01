@@ -34,6 +34,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
 
   let alive = true;
   let locked = false;
+  let dialogOpen = false;
   let keyboardMode = false;
   let cursor: Coord = { x: 4, y: 4 };
   let pendingScore: { delta: number; coord: Coord } | null = null;
@@ -186,13 +187,24 @@ export const battleScreen: ScreenFactory = (app, root) => {
   }
 
   const quit = async (): Promise<void> => {
-    if (game.phase !== 'battle') return;
+    if (isOver() || dialogOpen) return;
+    dialogOpen = true;
     const yes = await confirmDialog('ABANDON SHIP? THIS COUNTS AS A DEFEAT.', 'ABANDON', 'KEEP FIGHTING');
+    dialogOpen = false;
     if (yes && alive) {
       game.forfeit();
       app.go('gameover');
     }
   };
+
+  const fitBoards = (): void => {
+    const next = Math.max(28, Math.min(40, fitCellSize(window.innerWidth - 120, 2)));
+    if (next !== own.bc.cell) {
+      own.resize(next);
+      enemy.resize(next);
+    }
+  };
+  window.addEventListener('resize', fitBoards);
 
   // ---- layout ----------------------------------------------------------------
 
@@ -274,7 +286,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
   };
 
   const offKey = onKey((e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || dialogOpen) return;
     switch (e.key) {
       case 'ArrowLeft':
         moveCursor(-1, 0);
@@ -307,6 +319,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
       alive = false;
       offKey();
       offScore();
+      window.removeEventListener('resize', fitBoards);
       enemyCanvas.removeEventListener('pointermove', onPointerMove);
       enemyCanvas.removeEventListener('pointerleave', onPointerLeave);
       enemyCanvas.removeEventListener('click', onClick);
