@@ -13,6 +13,11 @@ export interface DevinConfig {
   /** GitHub URL of this repo, so the Devin Cloud agent knows where to work. */
   readonly repo?: string;
   readonly apiBase?: string;
+  /**
+   * Also expose the endpoint on `vite preview`. Off by default: a preview server
+   * started with `--host` would otherwise proxy anyone on the network into Devin.
+   */
+  readonly allowPreview?: boolean;
 }
 
 const DEFAULT_API_BASE = 'https://api.devin.ai/v3';
@@ -39,6 +44,34 @@ export function buildPrompt(report: BugReportPayload, cfg: DevinConfig): string 
     'fix it with a regression test where practical, make sure `npm run typecheck && npm test && npm run build` pass,',
     'and open a pull request describing the cause and the fix.',
   ].join('\n');
+}
+
+function hostOf(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    return new URL(value).host;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Rejects anything that is not a genuine same-origin JSON call from the game:
+ * a cross-origin page can forge a "simple" POST (no preflight) otherwise, and
+ * spend the org's Devin credits on an attacker-written prompt. Exported for tests.
+ */
+export function rejectReason(req: IncomingMessage): string | undefined {
+  const contentType = (req.headers['content-type'] ?? '').split(';')[0]?.trim().toLowerCase();
+  if (contentType !== 'application/json') return 'Content-Type must be application/json';
+  const fetchSite = req.headers['sec-fetch-site'];
+  if (typeof fetchSite === 'string' && fetchSite !== 'same-origin' && fetchSite !== 'none') return 'Cross-origin requests are not allowed';
+  const host = req.headers.host;
+  const origin = hostOf(req.headers.origin);
+  const referer = hostOf(req.headers.referer);
+  const claimed = origin ?? referer;
+  if (claimed !== undefined && claimed !== host) return 'Cross-origin requests are not allowed';
+  if (claimed === undefined && typeof fetchSite !== 'string') return 'Missing Origin header';
+  return undefined;
 }
 
 async function readJson(req: IncomingMessage): Promise<unknown> {
@@ -88,6 +121,8 @@ export async function createDevinSession(
 export function devinBugReportPlugin(cfg: DevinConfig): Plugin {
   const handler = async (req: IncomingMessage, res: ServerResponse, next: () => void): Promise<void> => {
     if (req.method !== 'POST') return next();
+    const reason = rejectReason(req);
+    if (reason) return send(res, 403, { error: 'forbidden', message: reason });
     try {
       const body = await readJson(req).catch(() => undefined);
       if (!isPayload(body)) return send(res, 400, { error: 'bad_request', message: 'Expected JSON { description, context }' });
@@ -111,6 +146,7 @@ export function devinBugReportPlugin(cfg: DevinConfig): Plugin {
       server.middlewares.use('/api/report-bug', (req, res, next) => void handler(req, res, next));
     },
     configurePreviewServer(server) {
+      if (!cfg.allowPreview) return;
       server.middlewares.use('/api/report-bug', (req, res, next) => void handler(req, res, next));
     },
   };

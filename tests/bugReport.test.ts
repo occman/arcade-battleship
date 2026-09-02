@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildPrompt, createDevinSession, type BugReportPayload } from '../server/bugReport.ts';
+import type { IncomingMessage } from 'node:http';
+import { buildPrompt, createDevinSession, devinBugReportPlugin, rejectReason, type BugReportPayload } from '../server/bugReport.ts';
 import { formatReport, githubCrashIssueUrl, githubIssueUrl } from '../src/bugReportFormat.ts';
 
 describe('bug report -> GitHub issue', () => {
@@ -85,5 +86,41 @@ describe('bug report -> Devin session', () => {
   it('surfaces upstream failures', async () => {
     const fetchImpl = (async () => new Response('nope', { status: 401 })) as typeof fetch;
     await expect(createDevinSession(report, { apiKey: 'x', orgId: 'y' }, fetchImpl)).rejects.toMatchObject({ code: 'upstream' });
+  });
+});
+
+const req = (headers: Record<string, string>): IncomingMessage => ({ headers: { host: 'localhost:5173', ...headers } }) as unknown as IncomingMessage;
+
+describe('bug report endpoint guards', () => {
+  it('accepts the same-origin JSON call the game makes', () => {
+    expect(rejectReason(req({ 'content-type': 'application/json', origin: 'http://localhost:5173', 'sec-fetch-site': 'same-origin' }))).toBeUndefined();
+    expect(rejectReason(req({ 'content-type': 'application/json; charset=utf-8', referer: 'http://localhost:5173/' }))).toBeUndefined();
+  });
+
+  it('rejects content types a cross-origin request can send without a preflight', () => {
+    expect(rejectReason(req({ 'content-type': 'text/plain;charset=UTF-8', origin: 'http://localhost:5173' }))).toMatch(/Content-Type/);
+    expect(rejectReason(req({ origin: 'http://localhost:5173' }))).toMatch(/Content-Type/);
+  });
+
+  it('rejects foreign origins, foreign referers and cross-site fetches', () => {
+    expect(rejectReason(req({ 'content-type': 'application/json', origin: 'https://evil.example' }))).toMatch(/Cross-origin/);
+    expect(rejectReason(req({ 'content-type': 'application/json', referer: 'https://evil.example/x' }))).toMatch(/Cross-origin/);
+    expect(rejectReason(req({ 'content-type': 'application/json', origin: 'http://localhost:5173', 'sec-fetch-site': 'cross-site' }))).toMatch(/Cross-origin/);
+  });
+
+  it('rejects non-browser callers that state no origin at all', () => {
+    expect(rejectReason(req({ 'content-type': 'application/json' }))).toMatch(/Origin/);
+  });
+
+  it('only mounts on the preview server when explicitly opted in', () => {
+    const mount = (allowPreview: boolean): number => {
+      let mounted = 0;
+      const server = { middlewares: { use: () => void mounted++ } };
+      const hook = devinBugReportPlugin({ allowPreview }).configurePreviewServer;
+      (hook as unknown as (s: typeof server) => void)(server);
+      return mounted;
+    };
+    expect(mount(false)).toBe(0);
+    expect(mount(true)).toBe(1);
   });
 });
