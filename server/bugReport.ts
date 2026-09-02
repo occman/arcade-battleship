@@ -41,11 +41,47 @@ export function buildPrompt(report: BugReportPayload, cfg: DevinConfig): string 
   ].join('\n');
 }
 
-async function readJson(req: IncomingMessage): Promise<unknown> {
+/** Generous upper bound for a report (the textarea caps at 2000 chars plus a small context object). */
+export const MAX_BODY_BYTES = 64 * 1024;
+
+class HttpError extends Error {
+  readonly status: number;
+  readonly code: string;
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}
+
+/** Reads a JSON body, rejecting once more than `limit` bytes have arrived. Exported for tests. */
+export async function readJson(req: IncomingMessage, limit: number = MAX_BODY_BYTES): Promise<unknown> {
+  const declared = Number(req.headers['content-length']);
+  if (Number.isFinite(declared) && declared > limit) {
+    throw new HttpError(413, 'payload_too_large', `Request body exceeds ${limit} bytes`);
+  }
   const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  let size = 0;
+  for await (const chunk of req) {
+    const buf = typeof chunk === 'string' ? Buffer.from(chunk) : (chunk as Buffer);
+    size += buf.byteLength;
+    if (size > limit) {
+      req.pause();
+      throw new HttpError(413, 'payload_too_large', `Request body exceeds ${limit} bytes`);
+    }
+    chunks.push(buf);
+  }
   const raw = Buffer.concat(chunks).toString('utf8');
-  return raw ? JSON.parse(raw) : {};
+  try {
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    throw new HttpError(400, 'bad_request', 'Body is not valid JSON');
+  }
+}
+
+function isJsonContentType(req: IncomingMessage): boolean {
+  const type = req.headers['content-type'] ?? '';
+  return type.split(';')[0]?.trim().toLowerCase() === 'application/json';
 }
 
 function send(res: ServerResponse, status: number, body: unknown): void {
@@ -88,14 +124,23 @@ export async function createDevinSession(
 export function devinBugReportPlugin(cfg: DevinConfig): Plugin {
   const handler = async (req: IncomingMessage, res: ServerResponse, next: () => void): Promise<void> => {
     if (req.method !== 'POST') return next();
+    if (!isJsonContentType(req)) {
+      return send(res, 415, { error: 'unsupported_media_type', message: 'Content-Type must be application/json' });
+    }
     try {
-      const body = await readJson(req).catch(() => undefined);
+      const body = await readJson(req);
       if (!isPayload(body)) return send(res, 400, { error: 'bad_request', message: 'Expected JSON { description, context }' });
       const session = await createDevinSession(body, cfg);
       send(res, 200, session);
     } catch (err) {
       const e = err as Error & { code?: string };
-      if (e.code === 'not_configured') {
+      if (err instanceof HttpError) {
+        if (err.status === 413) {
+          res.setHeader('Connection', 'close');
+          res.once('finish', () => req.destroy());
+        }
+        send(res, err.status, { error: err.code, message: err.message });
+      } else if (e.code === 'not_configured') {
         send(res, 501, {
           error: 'not_configured',
           message: 'Set DEVIN_API_KEY and DEVIN_ORG_ID in .env.local (see .env.example) to hand bugs to a Devin Cloud agent.',
