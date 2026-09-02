@@ -4,7 +4,7 @@ import { loop } from '../render/loop.ts';
 import { PALETTE } from '../render/palette.ts';
 import { loadScores } from '../storage.ts';
 import type { ScreenFactory } from './app.ts';
-import { h, onKey } from './dom.ts';
+import { activatesFocusedControl, h, onKey } from './dom.ts';
 import { settings } from './settings.ts';
 import { musicToggle } from './widgets.ts';
 
@@ -252,6 +252,7 @@ export const titleScreen: ScreenFactory = (app, root) => {
   );
 
   const offKey = onKey((e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || activatesFocusedControl(e)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       start();

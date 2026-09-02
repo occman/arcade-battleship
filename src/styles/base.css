@@ -34,26 +34,34 @@ canvas {
   display: block;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  /* Board taps must not double-tap-zoom or select text on touch screens. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 button {
   font: inherit;
   text-transform: inherit;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .screen {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 24px 40px;
+  padding: 24px clamp(12px, 4vw, 24px) 40px;
   gap: 20px;
   animation: screen-in 240ms ease-out;
 }

@@ -166,7 +166,6 @@ body.reduce-fx .marquee span {
     border-color 100ms;
 }
 
-.rank-card:hover,
 .rank-card:focus-visible,
 .rank-card.selected {
   border-color: var(--card-color);
@@ -175,6 +174,16 @@ body.reduce-fx .marquee span {
     inset 0 0 14px color-mix(in srgb, var(--card-color) 20%, transparent);
   transform: translateY(-4px);
   outline: none;
+}
+
+@media (hover: hover) {
+  .rank-card:hover {
+    border-color: var(--card-color);
+    box-shadow:
+      0 0 12px var(--card-color),
+      inset 0 0 14px color-mix(in srgb, var(--card-color) 20%, transparent);
+    transform: translateY(-4px);
+  }
 }
 
 .rank-card .rank-name {
@@ -262,10 +271,15 @@ body.reduce-fx .marquee span {
   color: var(--label);
 }
 
-.dock-ship:hover,
 .dock-ship:focus-visible {
   border-color: var(--cyan);
   outline: none;
+}
+
+@media (hover: hover) {
+  .dock-ship:hover {
+    border-color: var(--cyan);
+  }
 }
 
 .dock-ship.selected {
@@ -586,6 +600,36 @@ body.reduce-fx .banner {
   gap: 14px;
 }
 
+.slot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.slot-arrow {
+  width: 44px;
+  height: 32px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--label);
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--panel-border);
+}
+
+.slot-arrow:focus-visible {
+  border-color: var(--amber);
+  color: var(--amber);
+  outline: none;
+}
+
+@media (hover: hover) {
+  .slot-arrow:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+}
+
 .initials-slots .slot {
   width: 56px;
   height: 64px;
@@ -594,6 +638,7 @@ body.reduce-fx .banner {
   font-size: 28px;
   color: var(--amber);
   border-bottom: 4px solid var(--dim);
+  cursor: pointer;
 }
 
 .initials-slots .slot.active {
@@ -636,4 +681,94 @@ body.reduce-fx .banner {
 
 .score-table tr:nth-child(1) td:first-child {
   color: var(--amber);
+}
+
+/* ---- phones ----------------------------------------------------------- */
+
+@media (max-width: 759px) {
+  .screen {
+    padding-bottom: 80px; /* keep the last row of buttons clear of the fixed REPORT BUG button */
+  }
+
+  .logo {
+    max-width: 100%;
+    padding: 14px 14px 12px;
+  }
+
+  .logo-top {
+    letter-spacing: 4px;
+  }
+
+  .logo-main {
+    font-size: clamp(24px, 8.5vw, 36px);
+    letter-spacing: 1px;
+  }
+
+  .ribbon {
+    max-width: 100%;
+    padding: 8px 16px;
+    font-size: 8px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  /* Enemy waters first: the board you fire on should be visible without scrolling. */
+  .board-col.enemy {
+    order: -1;
+  }
+
+  .marquee {
+    right: 0;
+    bottom: 48px; /* clear the REPORT BUG button */
+  }
+
+  .screen-heading {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+
+  .rank-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rank-card {
+    min-height: 0;
+    padding: 14px 8px;
+  }
+
+  .dock {
+    min-width: 0;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .hud-center {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .ticker {
+    min-height: 0;
+  }
+
+  .initials-slots {
+    gap: 8px;
+  }
+
+  .initials-slots .slot {
+    width: 48px;
+  }
+
+  .score-table th,
+  .score-table td {
+    padding: 8px 4px;
+    font-size: 8px;
+  }
 }

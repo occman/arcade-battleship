@@ -6,7 +6,7 @@ import { BoardCanvas, fitCellSize } from '../render/canvas.ts';
 import { Shake } from '../render/effects.ts';
 import { PALETTE } from '../render/palette.ts';
 import type { ScreenFactory } from './app.ts';
-import { h, onKey } from './dom.ts';
+import { activatesFocusedControl, h, onKey } from './dom.ts';
 import { musicToggle, shipIcon } from './widgets.ts';
 
 export const placementScreen: ScreenFactory = (app, root) => {
@@ -18,7 +18,9 @@ export const placementScreen: ScreenFactory = (app, root) => {
   let cursor: Coord = { x: 0, y: 0 };
   let keyboardMode = false;
 
-  const cell = Math.min(44, fitCellSize(window.innerWidth - 420, 1));
+  /** The dock sits beside the board on wide screens and wraps below it on phones. */
+  const placementCell = (): number => Math.min(44, fitCellSize(window.innerWidth - (window.innerWidth < 760 ? 48 : 420), 1));
+  const cell = placementCell();
   const canvas = h('canvas');
   const bc = new BoardCanvas(canvas, cell);
   const renderer = new BoardRenderer(bc, board, { revealShips: true, hoverColor: PALETTE.amber });
@@ -239,13 +241,13 @@ export const placementScreen: ScreenFactory = (app, root) => {
   canvas.addEventListener('click', onClick);
   canvas.addEventListener('contextmenu', onContextMenu);
   const fitBoard = (): void => {
-    const next = Math.min(44, fitCellSize(window.innerWidth - 420, 1));
+    const next = placementCell();
     if (next !== bc.cell) renderer.resize(next);
   };
   window.addEventListener('resize', fitBoard);
 
   const offKey = onKey((e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || activatesFocusedControl(e)) return;
     switch (e.key) {
       case 'ArrowLeft':
         moveCursor(-1, 0);

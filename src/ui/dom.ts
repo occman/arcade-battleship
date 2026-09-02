@@ -32,3 +32,14 @@ export function onKey(handler: (e: KeyboardEvent) => void): () => void {
   window.addEventListener('keydown', handler);
   return () => window.removeEventListener('keydown', handler);
 }
+
+/**
+ * True when Enter/Space is about to activate a keyboard-focused button or link.
+ * Screen-level shortcuts must yield in that case so the focused control wins.
+ */
+export function activatesFocusedControl(e: KeyboardEvent): boolean {
+  if (e.key !== 'Enter' && e.key !== ' ') return false;
+  const el = document.activeElement;
+  if (!(el instanceof HTMLButtonElement || el instanceof HTMLAnchorElement)) return false;
+  return el.matches(':focus-visible');
+}

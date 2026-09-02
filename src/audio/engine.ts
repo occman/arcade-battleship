@@ -53,7 +53,8 @@ export class AudioEngine {
       this.musicBus.gain.value = this.musicMuted ? 0 : this.musicLevel;
       this.musicBus.connect(this.master);
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
+    // iOS reports a non-standard 'interrupted' state after calls/Siri; resume from that too.
+    if (this.ctx.state !== 'running' && this.ctx.state !== 'closed') void this.ctx.resume().catch(() => undefined);
   }
 
   setSfxMuted(muted: boolean): void {
@@ -102,5 +103,9 @@ export const audio = new AudioEngine();
 export function installAudioUnlock(): void {
   const handler = (): void => audio.unlock();
   window.addEventListener('pointerdown', handler, { passive: true });
+  window.addEventListener('touchend', handler, { passive: true });
   window.addEventListener('keydown', handler);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && audio.context) audio.unlock();
+  });
 }
