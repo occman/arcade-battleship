@@ -6,7 +6,7 @@ description: How to run and UI-test the Arcade Battleship Vite game (dev server,
 # Testing Arcade Battleship in the browser
 
 ## Run it
-- `source ~/.nvm/nvm.sh && nvm use 22` (Node 20 fails), `npm install`, `npm run dev` → http://localhost:5173/.
+- `source ~/.nvm/nvm.sh && nvm use 22` (Vite 8 needs Node ^20.19 or >=22.12; the box default 20.18 fails with "Cannot find native binding"), `npm install`, `npm run dev` → http://localhost:5173/.
 - Check a dev server is not already running first: `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/`.
 - Dev builds expose `window.__game` (current match) and `window.__debug`; production builds don't.
 
@@ -15,7 +15,7 @@ description: How to run and UI-test the Arcade Battleship Vite game (dev server,
 - Esc on placement first *deselects* the current ship; a second Esc goes back to difficulty.
 - Forfeit (ABANDON SHIP → ABANDON) still yields a game-over score = battle points; any score > 0 qualifies for initials entry while the table has < 10 entries, so land one hit before abandoning to test the initials UI without winning.
 - To find an enemy ship cell for a guaranteed hit (locating only, still fire via the UI):
-  `for y..10 for x..10: __game.boards.ai.shipAt({x,y}) && !__game.boards.ai.markAt({x,y})`.
+  `for (let y = 0; y < 10; y++) for (let x = 0; x < 10; x++) if (__game.boards.ai.shipAt({ x, y }) && !__game.boards.ai.markAt({ x, y })) console.log({ x, y });`
 - High scores live in localStorage key `arcade-battleship:scores:v1`; clear it to reset the table.
 
 ## Quirks of the automation Chrome
