@@ -53,7 +53,7 @@ Pushing to `main` runs `.github/workflows/deploy.yml`: typecheck, tests and buil
 npm run typecheck   # strict tsc
 npm test            # vitest: rules, scoring, state machine, AI behaviour + seeded strength simulation
 npm run ai:bench    # average shots-to-win per tier (node scripts/ai-bench.ts)
-npm run smoke       # headless Chrome click-through of every screen (needs `npm run dev` running)
+npm run smoke       # headless Chrome click-through of every screen (needs `npm run dev` running; pass url=https://... to test a deployed build)
 npm run build       # production bundle in dist/
 ```
 

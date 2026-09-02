@@ -79,7 +79,7 @@ const key = async (k, code, text) => {
 };
 const waitTurn = async () => {
   for (let i = 0; i < 200; i++) {
-    if (await js(`window.__game.phase === 'over' || !document.querySelector('.board-wrap:not(.own)').classList.contains('locked')`)) return;
+    if (await js(`(window.__game && window.__game.phase === 'over') || document.getElementById('app').dataset.screen !== 'battle' || !document.querySelector('.board-wrap:not(.own)').classList.contains('locked')`)) return;
     await sleep(100);
   }
   throw new Error('battle never unlocked');
@@ -114,10 +114,18 @@ try {
   await key('Enter', 'Enter');
   expect((await screen()) === 'title', 'Enter inside the dialog must not start a game');
   await shot('01b-bug-dialog');
-  await js(`[...document.querySelectorAll('.bug-dialog .btn')].find((b) => b.textContent === 'SEND TO DEVIN').click()`);
-  await sleep(600);
-  const bugStatus = await js(`document.querySelector('.bug-status').textContent`);
-  expect(/NOT CONFIGURED|DEVIN IS ON IT/.test(bugStatus), `bug report status, got: ${bugStatus}`);
+  const dev = await js(`typeof window.__game !== 'undefined' || !!document.querySelector('script[src*="/@vite/client"]')`);
+  const buttons = await js(`[...document.querySelectorAll('.bug-dialog .btn')].map((b) => b.textContent)`);
+  if (dev) {
+    expect(buttons.includes('SEND TO DEVIN'), 'dev build offers SEND TO DEVIN');
+    await js(`[...document.querySelectorAll('.bug-dialog .btn')].find((b) => b.textContent === 'SEND TO DEVIN').click()`);
+    await sleep(600);
+    const bugStatus = await js(`document.querySelector('.bug-status').textContent`);
+    expect(/NOT CONFIGURED|DEVIN IS ON IT/.test(bugStatus), `bug report status, got: ${bugStatus}`);
+  } else {
+    expect(!buttons.includes('SEND TO DEVIN'), 'production build hides the dev-server hand-off');
+    expect(buttons.includes('OPEN GITHUB ISSUE'), 'production build offers OPEN GITHUB ISSUE');
+  }
   await js(`[...document.querySelectorAll('.bug-dialog .btn')].find((b) => b.textContent === 'CANCEL').click()`);
   expect(!(await js(`!!document.querySelector('.bug-dialog')`)), 'dialog closed');
 
@@ -141,25 +149,40 @@ try {
   await sleep(600);
   expect((await screen()) === 'battle', 'battle screen');
 
-  const targets = await js(`window.__game.boards.ai.ships.flatMap((s) => s.cells.map((c) => [c.x, c.y]))`);
-  await clickCell('.board-wrap:not(.own)', 0, 0);
-  await sleep(200);
-  await waitTurn();
-  await clickCell('.board-wrap:not(.own)', 0, 0); // repeat shot must be rejected without a turn change
-  expect((await js(`window.__game.turn`)) === 'human', 'repeat shot to be ignored');
   let n = 0;
-  for (const [x, y] of targets) {
-    if (await js(`window.__game.boards.ai.markAt({ x: ${x}, y: ${y} }) !== undefined`)) continue;
-    await clickCell('.board-wrap:not(.own)', x, y);
-    if (++n === 5) {
-      await sleep(700);
-      await shot('04-battle-sink');
-    }
+  if (dev) {
+    const targets = await js(`window.__game.boards.ai.ships.flatMap((s) => s.cells.map((c) => [c.x, c.y]))`);
+    await clickCell('.board-wrap:not(.own)', 0, 0);
     await sleep(200);
     await waitTurn();
-    if ((await js(`window.__game.phase`)) === 'over') break;
+    await clickCell('.board-wrap:not(.own)', 0, 0); // repeat shot must be rejected without a turn change
+    expect((await js(`window.__game.turn`)) === 'human', 'repeat shot to be ignored');
+    for (const [x, y] of targets) {
+      if (await js(`window.__game.boards.ai.markAt({ x: ${x}, y: ${y} }) !== undefined`)) continue;
+      await clickCell('.board-wrap:not(.own)', x, y);
+      if (++n === 5) {
+        await sleep(700);
+        await shot('04-battle-sink');
+      }
+      await sleep(200);
+      await waitTurn();
+      if ((await js(`window.__game.phase`)) === 'over') break;
+    }
+    expect((await js(`window.__game.winner`)) === 'human', 'human victory');
+  } else {
+    // No debug handle in production: fire a handful of shots, then abandon ship to reach game over.
+    for (const [x, y] of [[0, 0], [5, 5], [9, 9], [3, 6]]) {
+      await clickCell('.board-wrap:not(.own)', x, y);
+      n++;
+      await sleep(200);
+      await waitTurn();
+    }
+    await shot('04-battle');
+    expect((await js(`document.querySelectorAll('.ticker .line').length`)) >= 2, 'ticker logged the exchange');
+    await key('Escape', 'Escape');
+    await sleep(300);
+    await js(`document.querySelector('.confirm .btn-red').click()`);
   }
-  expect((await js(`window.__game.winner`)) === 'human', 'human victory');
   await sleep(1800);
   expect((await screen()) === 'gameover', 'game over screen');
   await shot('05-gameover');
@@ -179,7 +202,7 @@ try {
   expect((await screen()) === 'highscores', 'high scores screen');
   await shot('07-highscores');
   if (problems.length) throw new Error(problems.join('\n'));
-  console.log(`smoke OK (${n + 1} shots to win, screenshots in ${OUT}/)`);
+  console.log(`smoke OK (${dev ? 'dev' : 'production'} build, ${n} shots fired, screenshots in ${OUT}/)`);
 } catch (err) {
   console.error('SMOKE FAILED:', err.message);
   for (const p of problems) console.error(' ', p);
