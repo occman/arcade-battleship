@@ -21,7 +21,7 @@ Run `npm run typecheck && npm test && npm run build`, then `npm run smoke` again
 - `src/render` — canvas rendering, pixel-art sprite generation, effects/animation system.
 - `src/audio` — Web Audio synth, SFX, chiptune sequencer. No audio files.
 - `src/ui` — DOM screens (title, difficulty, placement, battle, game over, high scores) plus the Report Bug dialog.
-- `server/bugReport.ts` — Vite plugin exposing `POST /api/report-bug`; creates a Devin session (v3 API) with `DEVIN_API_KEY` / `DEVIN_ORG_ID` / `DEVIN_REPO` from `.env.local`. Never expose those to the client bundle.
+- `server/bugReport.ts` — Vite plugin exposing `POST /api/report-bug`; creates a Devin session (v3 API) with `DEVIN_API_KEY` / `DEVIN_ORG_ID` / `DEVIN_REPO` from `.env.local`. Never expose those to the client bundle. The endpoint only accepts same-origin `application/json` POSTs and is dev-server only unless `DEVIN_BUG_REPORT_PREVIEW=1`.
 - `tests` — Vitest specs for `src/core` and the bug-report server logic.
 
 ## Conventions
