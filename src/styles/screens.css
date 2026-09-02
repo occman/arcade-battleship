@@ -498,6 +498,32 @@ body.reduce-fx .banner {
   outline: none;
 }
 
+.crash-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 450;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(720px, 94vw);
+  padding: 8px 12px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--amber);
+  background: rgba(2, 11, 28, 0.92);
+  border: 2px solid var(--red);
+}
+
+.crash-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bug-dialog .panel {
   width: min(560px, 92vw);
   align-items: stretch;

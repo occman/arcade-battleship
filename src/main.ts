@@ -9,7 +9,7 @@ import { music } from './audio/music.ts';
 import { sfx } from './audio/sfx.ts';
 import { App } from './ui/app.ts';
 import { battleScreen } from './ui/battle.ts';
-import { installErrorCollector, mountBugButton } from './ui/bugReport.ts';
+import { installCrashReporter, installErrorCollector, mountBugButton } from './ui/bugReport.ts';
 import { difficultyScreen } from './ui/difficulty.ts';
 import { gameOverScreen } from './ui/gameover.ts';
 import { highScoresScreen } from './ui/highscores.ts';
@@ -39,6 +39,7 @@ app.register('gameover', gameOverScreen);
 app.register('highscores', highScoresScreen);
 app.go('title');
 mountBugButton(app);
+installCrashReporter(app);
 
 // Dev-only console handles for poking at the running game (never shipped in the build).
 if (import.meta.env.DEV) {
