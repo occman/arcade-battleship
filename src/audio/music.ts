@@ -114,12 +114,19 @@ class MusicPlayer {
       this.nextStepTime = audio.now + 0.05;
       return;
     }
-    if (audio.isMusicMuted) {
+    if (audio.isMusicMuted || ctx.state !== 'running') {
       this.nextStepTime = ctx.currentTime + 0.05;
       return;
     }
     const pattern = PATTERNS[this.theme];
     const stepDur = 60 / pattern.bpm / 4;
+    // Background tabs throttle timers to >= 1 s; skip the steps we missed instead
+    // of scheduling them all at once (which would play as a burst of noise).
+    if (this.nextStepTime < ctx.currentTime - 0.2) {
+      const missed = Math.ceil((ctx.currentTime - this.nextStepTime) / stepDur);
+      this.step += missed;
+      this.nextStepTime += missed * stepDur;
+    }
     while (this.nextStepTime < ctx.currentTime + 0.12) {
       this.scheduleStep(pattern, this.step, this.nextStepTime, stepDur);
       this.nextStepTime += stepDur;

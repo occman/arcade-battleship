@@ -9,7 +9,7 @@ import { Explosion, Flash, FloatingText, fx, Reticle, Shake, ShellFlight, SinkCi
 import { wait } from '../render/loop.ts';
 import { PALETTE } from '../render/palette.ts';
 import type { ScreenFactory } from './app.ts';
-import { clear, h, onKey } from './dom.ts';
+import { activatesFocusedControl, clear, h, onKey } from './dom.ts';
 import { banner, confirmDialog, musicToggle, shipIcon } from './widgets.ts';
 
 const MAX_TICKER_LINES = 4;
@@ -26,7 +26,12 @@ export const battleScreen: ScreenFactory = (app, root) => {
 
   // ---- boards --------------------------------------------------------------
 
-  const cell = Math.max(28, Math.min(40, fitCellSize(window.innerWidth - 120, 2)));
+  /** Two boards side by side on wide screens; stacked (one per row) on phones. */
+  const battleCell = (): number => {
+    const stacked = window.innerWidth < 760;
+    return Math.max(24, Math.min(40, fitCellSize(window.innerWidth - (stacked ? 48 : 120), stacked ? 1 : 2)));
+  };
+  const cell = battleCell();
   const ownCanvas = h('canvas');
   const enemyCanvas = h('canvas');
   const own = new BoardRenderer(new BoardCanvas(ownCanvas, cell), game.boards.human, { revealShips: true, hoverColor: PALETTE.amber });
@@ -199,7 +204,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
   };
 
   const fitBoards = (): void => {
-    const next = Math.max(28, Math.min(40, fitCellSize(window.innerWidth - 120, 2)));
+    const next = battleCell();
     if (next !== own.bc.cell) {
       own.resize(next);
       enemy.resize(next);
@@ -238,8 +243,8 @@ export const battleScreen: ScreenFactory = (app, root) => {
     h(
       'div',
       { class: 'boards' },
-      h('div', {}, ownWrap, h('div', { class: 'board-caption' }, 'HOME WATERS')),
-      h('div', {}, enemyWrap, h('div', { class: 'board-caption c-cyan' }, 'ENEMY WATERS - CLICK TO FIRE')),
+      h('div', { class: 'board-col' }, ownWrap, h('div', { class: 'board-caption' }, 'HOME WATERS')),
+      h('div', { class: 'board-col enemy' }, enemyWrap, h('div', { class: 'board-caption c-cyan' }, `ENEMY WATERS - ${window.matchMedia('(hover: none)').matches ? 'TAP' : 'CLICK'} TO FIRE`)),
     ),
     ticker,
     h(
@@ -288,7 +293,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
   };
 
   const offKey = onKey((e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || dialogOpen) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || dialogOpen || activatesFocusedControl(e)) return;
     switch (e.key) {
       case 'ArrowLeft':
         moveCursor(-1, 0);

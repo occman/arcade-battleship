@@ -2,7 +2,7 @@ import { sfx } from '../audio/sfx.ts';
 import { difficultySpec } from '../core/constants.ts';
 import { insertScore, loadScores, qualifies, saveScores, type HighScore } from '../storage.ts';
 import type { ScreenFactory } from './app.ts';
-import { clear, h, onKey } from './dom.ts';
+import { activatesFocusedControl, clear, h, onKey } from './dom.ts';
 import { scoreTable } from './widgets.ts';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
@@ -133,6 +133,24 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
       sfx.type();
       render();
     };
+    // Each slot gets tap targets so initials can be entered without a keyboard.
+    const spin = (i: number, dir: number): void => {
+      index = i;
+      cycle(dir);
+    };
+    const columns = slots.map((slot, i) => {
+      slot.addEventListener('click', () => {
+        index = i;
+        render();
+      });
+      return h(
+        'div',
+        { class: 'slot-col' },
+        h('button', { class: 'slot-arrow', type: 'button', ariaLabel: `NEXT LETTER ${i + 1}`, onClick: () => spin(i, 1) }, '\u25B2'),
+        slot,
+        h('button', { class: 'slot-arrow', type: 'button', ariaLabel: `PREVIOUS LETTER ${i + 1}`, onClick: () => spin(i, -1) }, '\u25BC'),
+      );
+    });
     const commit = (): void => {
       offEntryKeys?.();
       offEntryKeys = null;
@@ -158,7 +176,7 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
         'div',
         { class: 'initials panel' },
         h('div', { class: 'c-amber neon' }, 'HIGH SCORE! ENTER YOUR INITIALS'),
-        h('div', { class: 'initials-slots' }, ...slots),
+        h('div', { class: 'initials-slots' }, ...columns),
         h('div', { class: 'hint' }, 'TYPE OR USE ', h('kbd', {}, '\u2191'), h('kbd', {}, '\u2193'), '  ', h('kbd', {}, 'ENTER'), ' TO CONFIRM'),
         h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: commit }, 'CONFIRM'),
       ),
@@ -166,7 +184,7 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
     showTable(scores, -1);
 
     offEntryKeys = onKey((e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || activatesFocusedControl(e)) return;
       const key = e.key.toUpperCase();
       if (key === 'ARROWUP') cycle(1);
       else if (key === 'ARROWDOWN') cycle(-1);
@@ -194,6 +212,7 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
 
   const offKeys = onKey((e) => {
     if (offEntryKeys || e.defaultPrevented) return; // initials entry owns the keyboard
+    if (e.metaKey || e.ctrlKey || e.altKey || activatesFocusedControl(e)) return;
     if (e.key === 'Enter') {
       app.newGame(app.difficulty);
       app.go('placement');

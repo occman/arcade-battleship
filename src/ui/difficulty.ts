@@ -1,7 +1,7 @@
 import { sfx } from '../audio/sfx.ts';
 import { DIFFICULTIES, type Difficulty } from '../core/constants.ts';
 import type { ScreenFactory } from './app.ts';
-import { h, onKey } from './dom.ts';
+import { activatesFocusedControl, h, onKey } from './dom.ts';
 import { shipIcon } from './widgets.ts';
 
 const CARD_COLORS: Record<Difficulty, string> = {
@@ -86,6 +86,7 @@ export const difficultyScreen: ScreenFactory = (app, root) => {
   );
 
   const offKey = onKey((e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || activatesFocusedControl(e)) return;
     switch (e.key) {
       case 'ArrowLeft':
       case 'ArrowUp':

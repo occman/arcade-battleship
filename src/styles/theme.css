@@ -134,13 +134,22 @@ body.reduce-fx .blink {
     transform 80ms;
 }
 
-.btn:hover:not(:disabled),
 .btn:focus-visible {
   background: var(--btn-color);
   color: #020b1c;
   text-shadow: none;
   outline: none;
   transform: translateY(-2px);
+}
+
+/* Hover styles only where a real pointer exists; on touch they stick after a tap. */
+@media (hover: hover) {
+  .btn:hover:not(:disabled) {
+    background: var(--btn-color);
+    color: #020b1c;
+    text-shadow: none;
+    transform: translateY(-2px);
+  }
 }
 
 .btn:active:not(:disabled) {
@@ -188,10 +197,15 @@ body.reduce-fx .blink {
   border: 2px solid var(--panel-border);
 }
 
-.chip:hover,
 .chip:focus-visible {
   border-color: var(--cyan);
   outline: none;
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    border-color: var(--cyan);
+  }
 }
 
 .chip .led {

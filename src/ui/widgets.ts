@@ -92,8 +92,17 @@ export function confirmDialog(message: string, yesLabel = 'YES', noLabel = 'NO')
       resolve(value);
     };
     const onKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') finish(false);
-      if (e.key === 'Enter') finish(true);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finish(false);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        // Enter/Space activate whichever button is focused (NO by default).
+        e.preventDefault();
+        finish(document.activeElement === yes);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Tab') {
+        e.preventDefault();
+        (document.activeElement === yes ? no : yes).focus();
+      }
     };
     const yes = h('button', { class: 'btn btn-red', type: 'button', onClick: () => finish(true) }, yesLabel);
     const no = h('button', { class: 'btn', type: 'button', onClick: () => finish(false) }, noLabel);
