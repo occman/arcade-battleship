@@ -26,44 +26,31 @@ export function shipIcon(id: ShipId, look: ShipLook = 'normal', cellPx = 14): HT
   return canvas;
 }
 
-const SETTING_LABELS: Record<keyof Settings, string> = {
-  sfx: 'SFX',
-  music: 'MUSIC',
-  crt: 'CRT',
-  reduceFx: 'REDUCE FX',
-};
-
-/** Row of LED toggle chips bound to the settings store. */
-export function settingsChips(): { el: HTMLElement; destroy(): void } {
-  const chips = new Map<keyof Settings, HTMLButtonElement>();
-  const row = h('div', { class: 'settings-row' });
-  for (const key of Object.keys(SETTING_LABELS) as (keyof Settings)[]) {
-    const chip = h(
-      'button',
-      {
-        class: 'chip',
-        type: 'button',
-        onClick: () => {
-          settings.toggle(key);
-          sfx.click();
-        },
+/** LED toggle for the music, usable on any screen. Hotkey `M` is wired in main.ts. */
+export function musicToggle(): { el: HTMLButtonElement; destroy(): void } {
+  const label = h('span', {}, 'MUSIC');
+  const chip = h(
+    'button',
+    {
+      class: 'chip',
+      type: 'button',
+      title: 'Toggle music (M)',
+      onClick: () => {
+        settings.toggle('music');
+        sfx.click();
       },
-      h('span', { class: 'led' }),
-      SETTING_LABELS[key],
-    );
-    chip.setAttribute('aria-pressed', 'false');
-    chips.set(key, chip);
-    row.append(chip);
-  }
+    },
+    h('span', { class: 'led' }),
+    label,
+  );
   const sync = (s: Settings): void => {
-    for (const [key, chip] of chips) {
-      chip.classList.toggle('on', s[key]);
-      chip.setAttribute('aria-pressed', String(s[key]));
-    }
+    chip.classList.toggle('on', s.music);
+    chip.setAttribute('aria-pressed', String(s.music));
+    label.textContent = s.music ? 'MUSIC ON' : 'MUSIC OFF';
   };
   sync(settings.get());
   const off = settings.on(sync);
-  return { el: row, destroy: off };
+  return { el: chip, destroy: off };
 }
 
 export function scoreTable(list: readonly HighScore[], highlight = -1): HTMLElement {

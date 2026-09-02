@@ -162,7 +162,7 @@ export class ShellFlight extends Timed {
       ctx.fillRect(Math.round(q.x / px) * px - px, Math.round(q.y / px) * px - px, px * 2, px * 2);
     });
     ctx.globalAlpha = 1;
-    ctx.fillStyle = PALETTE.yellow;
+    ctx.fillStyle = PALETTE.amber;
     ctx.fillRect(Math.round(p.x / px) * px - px, Math.round(p.y / px) * px - px, px * 2, px * 2);
     ctx.fillStyle = PALETTE.white;
     ctx.fillRect(Math.round(p.x / px) * px, Math.round(p.y / px) * px, px, px);
@@ -203,7 +203,7 @@ export class Explosion extends Timed {
         vy: Math.sin(a) * v - speed * 0.3,
         life: rnd(250, 650),
         maxLife: 650,
-        color: [PALETTE.yellow, PALETTE.orange, PALETTE.white][i % 3] as string,
+        color: [PALETTE.amber, PALETTE.orange, PALETTE.white][i % 3] as string,
         size: bc.artPx * (i % 2 ? 1 : 2),
       });
     }
@@ -236,7 +236,7 @@ export class Explosion extends Timed {
     }
     if (t < 0.4) {
       const core = lerp(0.1, 0.6, easeOutCubic(t / 0.4)) * size;
-      pixelCircle(ctx, c.px, c.py, core, px, t < 0.15 ? PALETTE.white : PALETTE.yellow);
+      pixelCircle(ctx, c.px, c.py, core, px, t < 0.15 ? PALETTE.white : PALETTE.amber);
       if (t > 0.15) pixelCircle(ctx, c.px, c.py, core * 0.45, px, PALETTE.white);
     }
     drawParticles(ctx, this.sparks, px);
@@ -396,7 +396,7 @@ export class Reticle extends Timed {
     const y = Math.round(lerp(a.py, b.py, e) / px) * px;
     const locked = s >= 1;
     const blink = locked && Math.floor((this.elapsed - this.sweep) / dur(70)) % 2 === 0;
-    ctx.fillStyle = locked ? (blink ? PALETTE.white : PALETTE.red) : PALETTE.magenta;
+    ctx.fillStyle = locked ? (blink ? PALETTE.white : PALETTE.red) : PALETTE.red;
     const half = bc.cell / 2 + (locked ? 0 : (1 - e) * bc.cell);
     const arm = Math.max(px * 2, bc.cell * 0.3);
     // Corner brackets.

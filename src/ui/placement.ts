@@ -7,7 +7,7 @@ import { Shake } from '../render/effects.ts';
 import { PALETTE } from '../render/palette.ts';
 import type { ScreenFactory } from './app.ts';
 import { h, onKey } from './dom.ts';
-import { shipIcon } from './widgets.ts';
+import { musicToggle, shipIcon } from './widgets.ts';
 
 export const placementScreen: ScreenFactory = (app, root) => {
   const game = app.game ?? app.newGame(app.difficulty);
@@ -21,10 +21,11 @@ export const placementScreen: ScreenFactory = (app, root) => {
   const cell = Math.min(44, fitCellSize(window.innerWidth - 420, 1));
   const canvas = h('canvas');
   const bc = new BoardCanvas(canvas, cell);
-  const renderer = new BoardRenderer(bc, board, { revealShips: true, hoverColor: PALETTE.yellow });
+  const renderer = new BoardRenderer(bc, board, { revealShips: true, hoverColor: PALETTE.amber });
 
   const dockButtons = new Map<ShipId, HTMLButtonElement>();
-  const deployBtn = h('button', { class: 'btn btn-magenta', type: 'button', disabled: true, onClick: () => deploy() }, 'DEPLOY FLEET');
+  const music = musicToggle();
+  const deployBtn = h('button', { class: 'btn btn-amber', type: 'button', disabled: true, onClick: () => deploy() }, 'DEPLOY FLEET');
 
   // ---- state helpers ------------------------------------------------------
 
@@ -173,8 +174,9 @@ export const placementScreen: ScreenFactory = (app, root) => {
           'div',
           { class: 'btn-row' },
           h('button', { class: 'btn btn-small', type: 'button', onClick: rotate }, 'ROTATE (R)'),
-          h('button', { class: 'btn btn-small btn-yellow', type: 'button', onClick: randomize }, 'RANDOM'),
+          h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: randomize }, 'RANDOM'),
           h('button', { class: 'btn btn-small btn-red', type: 'button', onClick: clearAll }, 'CLEAR'),
+          music.el,
         ),
         deployBtn,
         h(
@@ -294,6 +296,7 @@ export const placementScreen: ScreenFactory = (app, root) => {
   return {
     destroy: () => {
       offKey();
+      music.destroy();
       window.removeEventListener('resize', fitBoard);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);

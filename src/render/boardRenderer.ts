@@ -20,6 +20,8 @@ export interface BoardRendererOptions {
   /** Draw every ship (own fleet) or only sunk ones (enemy waters). */
   readonly revealShips: boolean;
   readonly hoverColor?: string;
+  /** Overlay a slowly rotating radar sweep with range rings. */
+  readonly radar?: boolean;
 }
 
 /**
@@ -79,6 +81,7 @@ export class BoardRenderer {
     ctx.translate(Math.round(shake.x), Math.round(shake.y));
     ctx.drawImage(this.staticLayer, 0, 0, bc.width, bc.height);
     this.drawShimmer(ctx, now);
+    if (this.opts.radar) this.drawRadar(ctx, now);
     if (this.ghost) this.drawGhost(ctx, this.ghost);
     if (this.hover) this.drawHover(ctx, this.hover, now);
     if (this.cursor) this.drawCursor(ctx, this.cursor, now);
@@ -191,6 +194,45 @@ export class BoardRenderer {
     ctx.globalAlpha = 1;
   }
 
+  private drawRadar(ctx: CanvasRenderingContext2D, now: number): void {
+    const bc = this.bc;
+    const g0 = bc.cellOrigin(0, 0);
+    const span = bc.size * bc.cell;
+    const cx = g0.px + span / 2;
+    const cy = g0.py + span / 2;
+    const R = span * 0.72;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(g0.px, g0.py, span, span);
+    ctx.clip();
+    ctx.strokeStyle = PALETTE.cyan;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.14;
+    for (let r = 1; r <= 3; r++) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, (R * r) / 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    const sweep = ((now / 6000) * Math.PI * 2) % (Math.PI * 2);
+    ctx.fillStyle = PALETTE.cyan;
+    for (let i = 0; i < 18; i++) {
+      const a = sweep - i * 0.04;
+      ctx.globalAlpha = 0.11 * (1 - i / 18);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R, a - 0.04, a);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.globalAlpha = 0.45;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(sweep) * R, cy + Math.sin(sweep) * R);
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
   private drawGhost(ctx: CanvasRenderingContext2D, ghost: Ghost): void {
     const bc = this.bc;
     const w = ghost.orientation === 'h' ? ghost.length * bc.cell : bc.cell;
@@ -234,7 +276,7 @@ export class BoardRenderer {
     const px = bc.artPx;
     const arm = px * 3;
     ctx.globalAlpha = Math.floor(now / 250) % 2 === 0 ? 1 : 0.5;
-    ctx.fillStyle = PALETTE.yellow;
+    ctx.fillStyle = PALETTE.amber;
     for (const [sx, sy] of [
       [0, 0],
       [1, 0],

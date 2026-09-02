@@ -10,7 +10,7 @@ export const highScoresScreen: ScreenFactory = (app, root) => {
     app.go('title');
   };
   root.append(
-    h('h2', { class: 'screen-heading neon c-yellow' }, 'HALL OF ADMIRALS'),
+    h('h2', { class: 'screen-heading neon c-amber' }, 'HALL OF ADMIRALS'),
     h('div', { class: 'panel' }, scoreTable(loadScores())),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn', type: 'button', onClick: back }, 'BACK')),
     h('div', { class: 'hint' }, h('kbd', {}, 'ESC'), ' BACK'),

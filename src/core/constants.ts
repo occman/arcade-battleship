@@ -34,7 +34,7 @@ export interface DifficultySpec {
 
 export const DIFFICULTIES: readonly DifficultySpec[] = [
   { id: 'cadet', rank: 'CADET', blurb: 'Fires at random. A warm-up cruise.', multiplier: 1 },
-  { id: 'lieutenant', rank: 'LIEUTENANT', blurb: 'Sweeps in patterns and follows up every hit.', multiplier: 1.5 },
+  { id: 'lieutenant', rank: 'LIEUTENANT', blurb: 'Hunts the open sea and follows up every hit.', multiplier: 1.5 },
   { id: 'captain', rank: 'CAPTAIN', blurb: 'Calculates where your ships are most likely to be.', multiplier: 2 },
   { id: 'admiral', rank: 'ADMIRAL', blurb: 'Near-perfect targeting and a fleet hidden with care.', multiplier: 3 },
 ];

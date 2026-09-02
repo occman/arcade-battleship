@@ -47,7 +47,7 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
     h(
       'button',
       {
-        class: 'btn btn-magenta',
+        class: 'btn btn-amber',
         type: 'button',
         onClick: () => {
           sfx.select();
@@ -157,10 +157,10 @@ export const gameOverScreen: ScreenFactory = (app, root) => {
       h(
         'div',
         { class: 'initials panel' },
-        h('div', { class: 'c-yellow neon' }, 'HIGH SCORE! ENTER YOUR INITIALS'),
+        h('div', { class: 'c-amber neon' }, 'HIGH SCORE! ENTER YOUR INITIALS'),
         h('div', { class: 'initials-slots' }, ...slots),
         h('div', { class: 'hint' }, 'TYPE OR USE ', h('kbd', {}, '\u2191'), h('kbd', {}, '\u2193'), '  ', h('kbd', {}, 'ENTER'), ' TO CONFIRM'),
-        h('button', { class: 'btn btn-small btn-yellow', type: 'button', onClick: commit }, 'CONFIRM'),
+        h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: commit }, 'CONFIRM'),
       ),
     );
     showTable(scores, -1);

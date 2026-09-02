@@ -92,13 +92,34 @@ try {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 960, deviceScaleFactor: 2, mobile: false });
+  // Reduced motion shortens every animation, which keeps the run fast and exercises that code path.
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await send('Page.navigate', { url: URL });
   await sleep(1200);
-  await js(`localStorage.setItem('arcade-battleship:settings:v1', JSON.stringify({ sfx: true, music: false, crt: true, reduceFx: true }))`);
+  await js(`localStorage.setItem('arcade-battleship:settings:v1', JSON.stringify({ music: true }))`);
   await send('Page.navigate', { url: URL });
   await sleep(1500);
   expect((await screen()) === 'title', 'title screen');
   await shot('01-title');
+  // Music toggle + hotkey.
+  expect(await js(`document.querySelector('.chip').classList.contains('on')`), 'music on by default');
+  await key('m', 'KeyM', 'm');
+  expect(!(await js(`document.querySelector('.chip').classList.contains('on')`)), 'M to mute music');
+  await js(`document.querySelector('.chip').click()`);
+  expect(await js(`document.querySelector('.chip').classList.contains('on')`), 'chip to unmute music');
+  // Bug report dialog: opens, keeps hotkeys away from the game, and reports the unconfigured server gracefully.
+  await click('.bug-button');
+  await sleep(200);
+  await js(`document.querySelector('.bug-text').value = 'smoke test report'`);
+  await key('Enter', 'Enter');
+  expect((await screen()) === 'title', 'Enter inside the dialog must not start a game');
+  await shot('01b-bug-dialog');
+  await js(`[...document.querySelectorAll('.bug-dialog .btn')].find((b) => b.textContent === 'SEND TO DEVIN').click()`);
+  await sleep(600);
+  const bugStatus = await js(`document.querySelector('.bug-status').textContent`);
+  expect(/NOT CONFIGURED|DEVIN IS ON IT/.test(bugStatus), `bug report status, got: ${bugStatus}`);
+  await js(`[...document.querySelectorAll('.bug-dialog .btn')].find((b) => b.textContent === 'CANCEL').click()`);
+  expect(!(await js(`!!document.querySelector('.bug-dialog')`)), 'dialog closed');
 
   await click('.press-start');
   await sleep(300);
@@ -113,10 +134,10 @@ try {
   await clickCell('.board-wrap', 8, 4); // battleship, vertical
   await clickCell('.board-wrap', 3, 2); // pick the carrier back up
   await clickCell('.board-wrap', 0, 9); // drop it on the bottom row
-  await click('.btn.btn-yellow'); // random for the rest
+  await click('.btn-small.btn-amber'); // random for the rest
   await sleep(200);
   await shot('03-placement');
-  await click('.btn.btn-magenta'); // deploy
+  await click('.btn.btn-amber:not(.btn-small)'); // deploy
   await sleep(600);
   expect((await screen()) === 'battle', 'battle screen');
 

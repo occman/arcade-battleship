@@ -7,8 +7,8 @@ import { shipIcon } from './widgets.ts';
 const CARD_COLORS: Record<Difficulty, string> = {
   cadet: 'var(--green)',
   lieutenant: 'var(--cyan)',
-  captain: 'var(--yellow)',
-  admiral: 'var(--magenta)',
+  captain: 'var(--amber)',
+  admiral: 'var(--red)',
 };
 
 export const difficultyScreen: ScreenFactory = (app, root) => {

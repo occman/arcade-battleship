@@ -9,8 +9,6 @@ import { Board } from '../src/core/board.ts';
 import { DIFFICULTIES } from '../src/core/constants.ts';
 import { createRng } from '../src/core/rng.ts';
 
-declare const process: { argv: string[] };
-
 const args = Object.fromEntries(process.argv.slice(2).map((a: string) => a.split('=') as [string, string]));
 const games = Number(args['games'] ?? 500);
 const seed = Number(args['seed'] ?? 1);

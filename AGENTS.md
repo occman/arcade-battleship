@@ -1,6 +1,6 @@
 # Arcade Battleship
 
-Retro 80s neon-arcade Battleship vs. AI. Vite + TypeScript + Canvas 2D + Web Audio. Zero runtime dependencies.
+Retro arcade Battleship vs. AI, naval/radar themed (navy + cyan + amber/orange + signal red; palette in `src/render/palette.ts` and `src/styles/theme.css`). Vite + TypeScript + Canvas 2D + Web Audio. Zero runtime dependencies.
 
 ## Commands
 
@@ -20,8 +20,9 @@ Run `npm run typecheck && npm test && npm run build`, then `npm run smoke` again
 - `src/core` — pure game logic, no DOM (rules, board, game state machine, scoring, AI). Everything here is unit-tested.
 - `src/render` — canvas rendering, pixel-art sprite generation, effects/animation system.
 - `src/audio` — Web Audio synth, SFX, chiptune sequencer. No audio files.
-- `src/ui` — DOM screens (title, difficulty, placement, battle, game over, high scores).
-- `tests` — Vitest specs for `src/core`.
+- `src/ui` — DOM screens (title, difficulty, placement, battle, game over, high scores) plus the Report Bug dialog.
+- `server/bugReport.ts` — Vite plugin exposing `POST /api/report-bug`; creates a Devin session (v3 API) with `DEVIN_API_KEY` / `DEVIN_ORG_ID` / `DEVIN_REPO` from `.env.local`. Never expose those to the client bundle.
+- `tests` — Vitest specs for `src/core` and the bug-report server logic.
 
 ## Conventions
 

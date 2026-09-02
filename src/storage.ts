@@ -5,10 +5,7 @@ const SCORES_KEY = 'arcade-battleship:scores:v1';
 export const TABLE_SIZE = 10;
 
 export interface Settings {
-  sfx: boolean;
   music: boolean;
-  crt: boolean;
-  reduceFx: boolean;
 }
 
 export interface HighScore {
@@ -21,8 +18,12 @@ export interface HighScore {
 }
 
 export function defaultSettings(): Settings {
-  const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  return { sfx: true, music: true, crt: true, reduceFx: reduce };
+  return { music: true };
+}
+
+/** Reduced motion is not a user toggle in-game; it follows the OS preference. */
+export function prefersReducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function read<T>(key: string): T | undefined {

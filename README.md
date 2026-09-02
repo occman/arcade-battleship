@@ -1,6 +1,6 @@
 # Arcade Battleship
 
-A retro 80s neon-arcade take on Battleship, played in the browser against an AI with four difficulty tiers. Pixel-art fleets, explosions, screen shake, chiptune audio, CRT scanlines and a high-score table with three-letter initials. No runtime dependencies: everything is drawn on `<canvas>` and synthesised with the Web Audio API.
+A retro arcade take on Battleship, played in the browser against an AI with four difficulty tiers. Radar-scope boards over a night ocean, pixel-art fleets, explosions, screen shake, chiptune audio, CRT scanlines and a high-score table with three-letter initials. No runtime dependencies: everything is drawn on `<canvas>` and synthesised with the Web Audio API.
 
 ## Play
 
@@ -29,7 +29,19 @@ The AI only ever sees what you would see on a target grid (hits, misses, which s
 | Battle | Click a cell to fire, or arrows + `Enter`. `Esc` abandons ship (with confirmation) |
 | Game over | Type initials, `Enter` to confirm |
 
-Toggles on the title screen: **SFX**, **MUSIC**, **CRT** overlay, **REDUCE FX** (shorter animations, no flashes; on by default if your OS asks for reduced motion). Settings and scores persist in `localStorage`.
+Music can be switched on/off on every screen (button or `M`). If your OS asks for reduced motion, animations are shortened and flashes disabled automatically. Settings and scores persist in `localStorage`.
+
+### Report Bug button
+
+The small **REPORT BUG** button (bottom-right) captures the current game state, recent errors and your description. **SEND TO DEVIN** hands it to a Devin Cloud agent that reproduces and fixes the bug; **COPY REPORT** puts the same text on your clipboard.
+
+Sending to Devin needs credentials that must never ship to the browser, so the dev/preview server proxies the request. Copy `.env.example` to `.env.local` and fill in:
+
+- `DEVIN_API_KEY` — service-user API key (Devin → Settings → Service users)
+- `DEVIN_ORG_ID` — your organization id (`org-…`)
+- `DEVIN_REPO` — GitHub URL of this repo, so the agent knows where to work (push the project to GitHub and connect it to Devin first)
+
+Without them the button still works in copy-to-clipboard mode.
 
 ### Scoring
 

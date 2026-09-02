@@ -154,7 +154,7 @@ const CROSS_MAP: PixelMap = [
 export function markerSprite(kind: 'hit' | 'miss' | 'scorch' | 'cross', scale: number): HTMLCanvasElement {
   switch (kind) {
     case 'hit':
-      return renderPixelMap(HIT_MAP, { r: PALETTE.ember, o: PALETTE.orange, y: PALETTE.yellow }, scale, `hit|${scale}`);
+      return renderPixelMap(HIT_MAP, { r: PALETTE.ember, o: PALETTE.orange, y: PALETTE.amber }, scale, `hit|${scale}`);
     case 'miss':
       return renderPixelMap(MISS_MAP, { w: '#e8fbff', c: PALETTE.cyan }, scale, `miss|${scale}`);
     case 'scorch':

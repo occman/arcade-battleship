@@ -10,7 +10,7 @@ import { wait } from '../render/loop.ts';
 import { PALETTE } from '../render/palette.ts';
 import type { ScreenFactory } from './app.ts';
 import { clear, h, onKey } from './dom.ts';
-import { banner, confirmDialog, shipIcon } from './widgets.ts';
+import { banner, confirmDialog, musicToggle, shipIcon } from './widgets.ts';
 
 const MAX_TICKER_LINES = 4;
 
@@ -29,8 +29,9 @@ export const battleScreen: ScreenFactory = (app, root) => {
   const cell = Math.max(28, Math.min(40, fitCellSize(window.innerWidth - 120, 2)));
   const ownCanvas = h('canvas');
   const enemyCanvas = h('canvas');
-  const own = new BoardRenderer(new BoardCanvas(ownCanvas, cell), game.boards.human, { revealShips: true, hoverColor: PALETTE.yellow });
-  const enemy = new BoardRenderer(new BoardCanvas(enemyCanvas, cell), game.boards.ai, { revealShips: false, hoverColor: PALETTE.cyan });
+  const own = new BoardRenderer(new BoardCanvas(ownCanvas, cell), game.boards.human, { revealShips: true, hoverColor: PALETTE.amber });
+  const enemy = new BoardRenderer(new BoardCanvas(enemyCanvas, cell), game.boards.ai, { revealShips: false, hoverColor: PALETTE.cyan, radar: true });
+  const music = musicToggle();
 
   let alive = true;
   let locked = false;
@@ -73,7 +74,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
       turnLabel.className = `turn-label neon ${game.winner === 'human' ? 'c-green' : 'c-red'}`;
     } else {
       turnLabel.textContent = yourTurn ? 'YOUR TURN - FIRE!' : game.turn === 'human' ? 'FIRING...' : 'ENEMY TURN';
-      turnLabel.className = `turn-label neon ${yourTurn ? 'c-green' : 'c-magenta'}`;
+      turnLabel.className = `turn-label neon ${yourTurn ? 'c-green' : 'c-red'}`;
     }
     scoreValue.textContent = game.score.toLocaleString('en-US');
     const { shots, hits } = game.stats.human;
@@ -109,7 +110,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
     renderer.effects.add(new Shake(by === 'human' ? 5 : 7));
     log(by === 'human' ? `${label} ... HIT!` : `ENEMY FIRES AT ${label} ... HIT!`, 'hit');
     const boom = renderer.effects.run(new Explosion(c, result.sunk ? 1.35 : 1));
-    if (scoreText && !result.sunk) renderer.effects.add(new FloatingText(c, scoreText, PALETTE.yellow));
+    if (scoreText && !result.sunk) renderer.effects.add(new FloatingText(c, scoreText, PALETTE.amber));
     await boom;
 
     const ship = result.sunk;
@@ -120,7 +121,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
       if (by === 'human') {
         log(`YOU SUNK THE ENEMY ${name}!`, 'sunk');
         banner(root, `${name} SUNK!`, 'red');
-        if (scoreText) renderer.effects.add(new FloatingText(c, scoreText, PALETTE.yellow, 1400));
+        if (scoreText) renderer.effects.add(new FloatingText(c, scoreText, PALETTE.amber, 1400));
       } else {
         log(`THE ENEMY SUNK YOUR ${name}!`, 'sunk');
         banner(root, `${name} LOST!`, 'red');
@@ -244,9 +245,10 @@ export const battleScreen: ScreenFactory = (app, root) => {
     h(
       'div',
       { class: 'btn-row' },
+      music.el,
       h('button', { class: 'btn btn-small btn-red', type: 'button', onClick: () => void quit() }, 'ABANDON SHIP (ESC)'),
     ),
-    h('div', { class: 'hint' }, h('kbd', {}, 'ARROWS'), ' AIM  ', h('kbd', {}, 'ENTER'), ' FIRE'),
+    h('div', { class: 'hint' }, h('kbd', {}, 'ARROWS'), ' AIM  ', h('kbd', {}, 'ENTER'), ' FIRE  ', h('kbd', {}, 'M'), ' MUSIC'),
   );
 
   log(`BATTLE STATIONS! ENGAGING ${spec.rank} AI.`, 'good');
@@ -319,6 +321,7 @@ export const battleScreen: ScreenFactory = (app, root) => {
       alive = false;
       offKey();
       offScore();
+      music.destroy();
       window.removeEventListener('resize', fitBoards);
       enemyCanvas.removeEventListener('pointermove', onPointerMove);
       enemyCanvas.removeEventListener('pointerleave', onPointerLeave);

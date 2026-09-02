@@ -1,19 +1,22 @@
 import type { ShipId } from '../core/constants.ts';
 
-/** 80s neon arcade palette. Mirrored as CSS variables in styles/theme.css. */
+/**
+ * Naval arcade palette: deep navy ocean, glowing radar cyan, warning amber /
+ * orange for fire and the logo, signal red for alerts. Mirrored as CSS
+ * variables in styles/theme.css.
+ */
 export const PALETTE = {
-  bg: '#050014',
-  water: '#070b2a',
-  waterLight: '#0d1746',
-  grid: '#1b2a6b',
-  gridBright: '#2c4bb8',
-  label: '#7f8cff',
-  cyan: '#00f0ff',
-  magenta: '#ff00e6',
-  yellow: '#ffe600',
+  bg: '#020b1c',
+  water: '#04203f',
+  waterLight: '#062c55',
+  grid: '#0c4a80',
+  gridBright: '#1a8fd6',
+  label: '#6fd3ff',
+  cyan: '#3ee0ff',
+  amber: '#ffb000',
+  orange: '#ff7a00',
+  red: '#ff2f3a',
   green: '#39ff14',
-  orange: '#ff6a00',
-  red: '#ff2a4a',
   white: '#ffffff',
   hull: '#9aa3b8',
   hullDark: '#3a4256',
@@ -27,8 +30,8 @@ export const PALETTE = {
 
 export const SHIP_ACCENT: Record<ShipId, string> = {
   carrier: PALETTE.cyan,
-  battleship: PALETTE.magenta,
-  cruiser: PALETTE.yellow,
+  battleship: PALETTE.red,
+  cruiser: PALETTE.amber,
   submarine: PALETTE.green,
-  destroyer: PALETTE.orange,
+  destroyer: '#c8d8ff',
 };
