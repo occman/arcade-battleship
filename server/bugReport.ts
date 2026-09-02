@@ -65,12 +65,10 @@ export function rejectReason(req: IncomingMessage): string | undefined {
   if (contentType !== 'application/json') return 'Content-Type must be application/json';
   const fetchSite = req.headers['sec-fetch-site'];
   if (typeof fetchSite === 'string' && fetchSite !== 'same-origin' && fetchSite !== 'none') return 'Cross-origin requests are not allowed';
-  const host = req.headers.host;
-  const origin = hostOf(req.headers.origin);
-  const referer = hostOf(req.headers.referer);
-  const claimed = origin ?? referer;
-  if (claimed !== undefined && claimed !== host) return 'Cross-origin requests are not allowed';
-  if (claimed === undefined && typeof fetchSite !== 'string') return 'Missing Origin header';
+  // Browsers always attach Origin to a POST, so a request without one is not the game.
+  const claimed = hostOf(req.headers.origin) ?? hostOf(req.headers.referer);
+  if (claimed === undefined) return 'Missing Origin header';
+  if (claimed !== req.headers.host) return 'Cross-origin requests are not allowed';
   return undefined;
 }
 

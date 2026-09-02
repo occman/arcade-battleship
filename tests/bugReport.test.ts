@@ -108,8 +108,10 @@ describe('bug report endpoint guards', () => {
     expect(rejectReason(req({ 'content-type': 'application/json', origin: 'http://localhost:5173', 'sec-fetch-site': 'cross-site' }))).toMatch(/Cross-origin/);
   });
 
-  it('rejects non-browser callers that state no origin at all', () => {
+  it('rejects callers that state no origin, even with same-origin fetch metadata', () => {
     expect(rejectReason(req({ 'content-type': 'application/json' }))).toMatch(/Origin/);
+    expect(rejectReason(req({ 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' }))).toMatch(/Origin/);
+    expect(rejectReason(req({ 'content-type': 'application/json', 'sec-fetch-site': 'none' }))).toMatch(/Origin/);
   });
 
   it('only mounts on the preview server when explicitly opted in', () => {
