@@ -1,4 +1,5 @@
 import { sfx } from '../audio/sfx.ts';
+import { formatReport, githubIssueUrl } from '../bugReportFormat.ts';
 import type { App } from './app.ts';
 import { h } from './dom.ts';
 import { settings } from './settings.ts';
@@ -39,10 +40,7 @@ function captureContext(app: App): Record<string, unknown> {
   };
 }
 
-function formatReport(description: string, context: Record<string, unknown>): string {
-  const lines = Object.entries(context).map(([k, v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`);
-  return `ARCADE BATTLESHIP BUG REPORT\n\n${description.trim() || '(no description)'}\n\n--- context ---\n${lines.join('\n')}`;
-}
+
 
 function openDialog(app: App): void {
   sfx.click();
@@ -89,7 +87,21 @@ function openDialog(app: App): void {
     sendBtn.disabled = false;
   };
 
+  const openIssue = (): void => {
+    if (!__REPO_URL__) return;
+    window.open(githubIssueUrl(__REPO_URL__, description.value, captureContext(app)), '_blank', 'noopener');
+    status.textContent = 'GITHUB ISSUE OPENED IN A NEW TAB - REVIEW AND SUBMIT IT THERE.';
+    setTimeout(close, 1500);
+  };
+
+  // The /api/report-bug proxy only exists on the local dev/preview server; the hosted build files GitHub issues.
   const sendBtn = h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: () => void send() }, 'SEND TO DEVIN');
+  const actions = [
+    __REPO_URL__ ? h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: openIssue }, 'OPEN GITHUB ISSUE') : null,
+    import.meta.env.DEV ? sendBtn : null,
+    h('button', { class: 'btn btn-small', type: 'button', onClick: () => void copy() }, 'COPY REPORT'),
+    h('button', { class: 'btn btn-small btn-red', type: 'button', onClick: close }, 'CANCEL'),
+  ];
   const overlay = h(
     'div',
     { class: 'confirm bug-dialog' },
@@ -99,13 +111,7 @@ function openDialog(app: App): void {
       h('div', { class: 'panel-title' }, 'REPORT A BUG'),
       description,
       status,
-      h(
-        'div',
-        { class: 'btn-row' },
-        sendBtn,
-        h('button', { class: 'btn btn-small', type: 'button', onClick: () => void copy() }, 'COPY REPORT'),
-        h('button', { class: 'btn btn-small btn-red', type: 'button', onClick: close }, 'CANCEL'),
-      ),
+      h('div', { class: 'btn-row' }, ...actions),
     ),
   );
   // Keep game hotkeys (arrows, Enter, M, Esc) from firing while typing.

@@ -8,13 +8,19 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 export default defineConfig(({ mode }) => {
   // Empty prefix so the server-only DEVIN_* variables from .env.local are visible here (never to the client).
   const env = loadEnv(mode, process.cwd(), '');
+  // In GitHub Actions the repo is known; locally it comes from .env.local.
+  const ghRepo = process.env['GITHUB_REPOSITORY'];
+  const repoUrl = env['DEVIN_REPO'] || (ghRepo ? `https://github.com/${ghRepo}` : '');
+  // GitHub Pages serves project sites from /<repo>/.
+  const base = process.env['GITHUB_ACTIONS'] && ghRepo ? `/${ghRepo.split('/')[1]}/` : '/';
   return {
-    define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+    base,
+    define: { __APP_VERSION__: JSON.stringify(pkg.version), __REPO_URL__: JSON.stringify(repoUrl) },
     plugins: [
       devinBugReportPlugin({
         apiKey: env['DEVIN_API_KEY'],
         orgId: env['DEVIN_ORG_ID'],
-        repo: env['DEVIN_REPO'],
+        repo: repoUrl || undefined,
       }),
     ],
     server: { port: 5173, strictPort: false, open: false },

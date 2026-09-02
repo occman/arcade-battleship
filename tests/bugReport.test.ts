@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { buildPrompt, createDevinSession, type BugReportPayload } from '../server/bugReport.ts';
+import { formatReport, githubIssueUrl } from '../src/bugReportFormat.ts';
+
+describe('bug report -> GitHub issue', () => {
+  it('builds a prefilled new-issue link with title, body and label', () => {
+    const url = new URL(githubIssueUrl('https://github.com/oscar/arcade-battleship/', 'Shell landed on the wrong cell\nmore detail', { screen: 'battle' }));
+    expect(url.origin + url.pathname).toBe('https://github.com/oscar/arcade-battleship/issues/new');
+    expect(url.searchParams.get('title')).toBe('Bug: Shell landed on the wrong cell');
+    expect(url.searchParams.get('labels')).toBe('bug');
+    const body = url.searchParams.get('body') ?? '';
+    expect(body).toContain('more detail');
+    expect(body).toContain('screen: battle');
+    expect(body).toContain('@devin');
+  });
+
+  it('formats a plain-text report for the clipboard', () => {
+    expect(formatReport('', { a: 1 })).toContain('(no description)');
+    expect(formatReport('x', { a: { b: 2 } })).toContain('a: {"b":2}');
+  });
+});
 
 const report: BugReportPayload = {
   description: 'Shell landed on the wrong cell',

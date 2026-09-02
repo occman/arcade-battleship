@@ -33,15 +33,15 @@ Music can be switched on/off on every screen (button or `M`). If your OS asks fo
 
 ### Report Bug button
 
-The small **REPORT BUG** button (bottom-right) captures the current game state, recent errors and your description. **SEND TO DEVIN** hands it to a Devin Cloud agent that reproduces and fixes the bug; **COPY REPORT** puts the same text on your clipboard.
+The small **REPORT BUG** button (bottom-right) captures the current game state, recent errors and your description.
 
-Sending to Devin needs credentials that must never ship to the browser, so the dev/preview server proxies the request. Copy `.env.example` to `.env.local` and fill in:
+- **OPEN GITHUB ISSUE** (hosted build and local dev) — opens a prefilled issue on this repo, labelled `bug` and mentioning `@devin`. Connect the repo to Devin at app.devin.ai and it can pick the issue up, reproduce with `npm run smoke`, fix, and open a PR.
+- **SEND TO DEVIN** (local dev server only) — creates a Devin Cloud session directly via the API. Needs credentials that must never ship to the browser, so the dev/preview server proxies the request. Copy `.env.example` to `.env.local` and fill in `DEVIN_API_KEY` (service-user key), `DEVIN_ORG_ID` and `DEVIN_REPO`.
+- **COPY REPORT** — the same text on your clipboard.
 
-- `DEVIN_API_KEY` — service-user API key (Devin → Settings → Service users)
-- `DEVIN_ORG_ID` — your organization id (`org-…`)
-- `DEVIN_REPO` — GitHub URL of this repo, so the agent knows where to work (push the project to GitHub and connect it to Devin first)
+## Deploy
 
-Without them the button still works in copy-to-clipboard mode.
+Pushing to `main` runs `.github/workflows/deploy.yml`: typecheck, tests and build, then publish `dist/` to GitHub Pages (project site at `https://<user>.github.io/arcade-battleship/`). The workflow sets the Vite `base` path and the repo URL for issue links automatically. Enable Pages once with source "GitHub Actions" (Settings → Pages), or `gh api -X POST repos/<user>/arcade-battleship/pages -f build_type=workflow`.
 
 ### Scoring
 
