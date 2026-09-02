@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { Readable } from 'node:stream';
 import type { IncomingMessage } from 'node:http';
-import { buildPrompt, createDevinSession, devinBugReportPlugin, rejectReason, type BugReportPayload } from '../server/bugReport.ts';
+import { buildPrompt, createDevinSession, devinBugReportPlugin, readJson, rejectReason, type BugReportPayload } from '../server/bugReport.ts';
 import { formatReport, githubCrashIssueUrl, githubIssueUrl } from '../src/bugReportFormat.ts';
 
 describe('bug report -> GitHub issue', () => {
@@ -86,6 +87,28 @@ describe('bug report -> Devin session', () => {
   it('surfaces upstream failures', async () => {
     const fetchImpl = (async () => new Response('nope', { status: 401 })) as typeof fetch;
     await expect(createDevinSession(report, { apiKey: 'x', orgId: 'y' }, fetchImpl)).rejects.toMatchObject({ code: 'upstream' });
+  });
+});
+
+describe('readJson body limit', () => {
+  const fakeReq = (chunks: string[], headers: Record<string, string> = {}): IncomingMessage =>
+    Object.assign(Readable.from(chunks.map((c) => Buffer.from(c))), { headers }) as unknown as IncomingMessage;
+
+  it('parses a small body', async () => {
+    await expect(readJson(fakeReq(['{"a":', '1}']), 64)).resolves.toEqual({ a: 1 });
+  });
+
+  it('rejects with 413 once streamed bytes exceed the limit', async () => {
+    const chunks = Array.from({ length: 10 }, () => 'x'.repeat(100));
+    await expect(readJson(fakeReq(chunks), 512)).rejects.toMatchObject({ status: 413, code: 'payload_too_large' });
+  });
+
+  it('rejects with 413 up front when Content-Length exceeds the limit', async () => {
+    await expect(readJson(fakeReq([], { 'content-length': '999999' }), 512)).rejects.toMatchObject({ status: 413 });
+  });
+
+  it('rejects malformed JSON with 400', async () => {
+    await expect(readJson(fakeReq(['{nope']), 512)).rejects.toMatchObject({ status: 400 });
   });
 });
 
