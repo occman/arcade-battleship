@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
         apiKey: env['DEVIN_API_KEY'],
         orgId: env['DEVIN_ORG_ID'],
         repo: repoUrl || undefined,
+        allowPreview: env['DEVIN_BUG_REPORT_PREVIEW'] === '1',
       }),
     ],
     server: { port: 5173, strictPort: false, open: false },
