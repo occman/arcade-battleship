@@ -524,6 +524,19 @@ body.reduce-fx .banner {
   white-space: nowrap;
 }
 
+@media (max-width: 480px) {
+  .crash-banner {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .crash-text {
+    flex-basis: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 .bug-dialog .panel {
   width: min(560px, 92vw);
   align-items: stretch;

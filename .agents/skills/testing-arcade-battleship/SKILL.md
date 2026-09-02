@@ -24,5 +24,11 @@ description: How to run and UI-test the Arcade Battleship Vite game (dev server,
 - Phone emulation: F12 → Ctrl+Shift+M, pick iPhone 12 Pro (390) / Samsung Galaxy S8+ (360). Reload after switching so screen-size-dependent canvas sizing recalculates. The page scrolls the `html` element; scroll inside the emulated viewport. The fixed REPORT BUG button legitimately overlays content mid-scroll; only check overlap when scrolled fully to the bottom.
 - Verify horizontal overflow with `document.documentElement.scrollWidth === innerWidth`.
 
+## Crash banner / GitHub issue links
+- `installCrashReporter` and OPEN GITHUB ISSUE are no-ops unless `__REPO_URL__` is set: start the dev server with `DEVIN_REPO=https://github.com/occman/arcade-battleship npm run dev -- --port 5173` (or put it in `.env.local`). Check with `__REPO_URL__` in the console.
+- Trigger crashes from the DevTools console (F12), not the CDP console tool (it rejects top-level `await`): `setTimeout(() => { throw new TypeError('boom') })` and `Promise.reject(new Error('rej'))`. Same message only banners once per page load and only 3 distinct banners per load — reload between scenarios.
+- REPORT CRASH / OPEN GITHUB ISSUE open github.com, which redirects to `/login?return_to=<issue URL>`. Decode it in that tab's console: `u = new URL(new URL(location.href).searchParams.get('return_to')); [u.pathname, u.searchParams.get('title'), u.searchParams.get('labels'), u.searchParams.get('body')]`.
+- DevTools console auto-closes quotes/brackets; long typed snippets with `'...' + '...'` can get mangled — keep them simple.
+
 ## Devin Secrets Needed
 - None for gameplay testing. `DEVIN_API_KEY` / `DEVIN_ORG_ID` / `DEVIN_REPO` in `.env.local` only if testing the REPORT BUG → Devin session flow.
