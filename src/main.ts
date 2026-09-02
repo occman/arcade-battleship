@@ -9,7 +9,7 @@ import { music } from './audio/music.ts';
 import { sfx } from './audio/sfx.ts';
 import { App } from './ui/app.ts';
 import { battleScreen } from './ui/battle.ts';
-import { installErrorCollector, mountBugButton } from './ui/bugReport.ts';
+import { installCrashReporter, installErrorCollector, mountBugButton } from './ui/bugReport.ts';
 import { difficultyScreen } from './ui/difficulty.ts';
 import { gameOverScreen } from './ui/gameover.ts';
 import { highScoresScreen } from './ui/highscores.ts';
@@ -31,6 +31,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 const app = new App(root);
+installCrashReporter(app);
 app.register('title', titleScreen);
 app.register('difficulty', difficultyScreen);
 app.register('placement', placementScreen);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildPrompt, createDevinSession, type BugReportPayload } from '../server/bugReport.ts';
-import { formatReport, githubIssueUrl } from '../src/bugReportFormat.ts';
+import { formatReport, githubCrashIssueUrl, githubIssueUrl } from '../src/bugReportFormat.ts';
 
 describe('bug report -> GitHub issue', () => {
   it('builds a prefilled new-issue link with title, body and label', () => {
@@ -12,6 +12,29 @@ describe('bug report -> GitHub issue', () => {
     expect(body).toContain('more detail');
     expect(body).toContain('screen: battle');
     expect(body).toContain('@devin');
+  });
+
+  it('builds a crash issue link labelled crash with the stack and context', () => {
+    const url = new URL(
+      githubCrashIssueUrl(
+        'https://github.com/oscar/arcade-battleship',
+        { message: 'Cannot read properties of undefined\nsecond line', stack: 'TypeError: boom\n    at render (battle.ts:12)' },
+        { screen: 'battle' },
+      ),
+    );
+    expect(url.pathname).toBe('/oscar/arcade-battleship/issues/new');
+    expect(url.searchParams.get('title')).toBe('Crash: Cannot read properties of undefined');
+    expect(url.searchParams.get('labels')).toBe('bug,crash');
+    const body = url.searchParams.get('body') ?? '';
+    expect(body).toContain('at render (battle.ts:12)');
+    expect(body).toContain('screen: battle');
+    expect(body).toContain('@devin');
+  });
+
+  it('falls back to the message when a crash has no stack', () => {
+    const body = new URL(githubCrashIssueUrl('https://github.com/o/r', { message: 'unhandled rejection: nope' }, {})).searchParams.get('body') ?? '';
+    expect(body).toContain('unhandled rejection: nope');
+    expect(new URL(githubCrashIssueUrl('https://github.com/o/r', { message: '' }, {})).searchParams.get('title')).toBe('Crash: unknown error');
   });
 
   it('formats a plain-text report for the clipboard', () => {

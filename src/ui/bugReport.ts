@@ -1,5 +1,5 @@
 import { sfx } from '../audio/sfx.ts';
-import { formatReport, githubIssueUrl } from '../bugReportFormat.ts';
+import { formatReport, githubCrashIssueUrl, githubIssueUrl, type CrashInfo } from '../bugReportFormat.ts';
 import type { App } from './app.ts';
 import { h } from './dom.ts';
 import { settings } from './settings.ts';
@@ -14,6 +14,49 @@ export function installErrorCollector(): void {
   };
   window.addEventListener('error', (e) => push(`${e.message} @${e.filename}:${e.lineno}`));
   window.addEventListener('unhandledrejection', (e) => push(`unhandled rejection: ${String(e.reason)}`));
+}
+
+function crashFromEvent(e: ErrorEvent | PromiseRejectionEvent): CrashInfo {
+  if (e instanceof ErrorEvent) {
+    const err = e.error as unknown;
+    return { message: e.message || String(err), stack: err instanceof Error ? err.stack : undefined };
+  }
+  const reason = e.reason as unknown;
+  return reason instanceof Error
+    ? { message: `unhandled rejection: ${reason.message}`, stack: reason.stack }
+    : { message: `unhandled rejection: ${String(reason)}` };
+}
+
+const MAX_CRASH_BANNERS = 3;
+const seenCrashes = new Set<string>();
+
+/**
+ * Shows a one-line banner after an uncaught error offering to file a prefilled
+ * GitHub issue (labelled `crash`). Deduped per message so a render loop that
+ * throws every frame only nags once, and capped per page load.
+ */
+export function installCrashReporter(app: App): void {
+  if (!__REPO_URL__) return;
+  const onCrash = (crash: CrashInfo): void => {
+    if (seenCrashes.has(crash.message) || seenCrashes.size >= MAX_CRASH_BANNERS) return;
+    seenCrashes.add(crash.message);
+    document.querySelector('.crash-banner')?.remove();
+    const close = (): void => banner.remove();
+    const report = (): void => {
+      window.open(githubCrashIssueUrl(__REPO_URL__, crash, captureContext(app)), '_blank', 'noopener');
+      close();
+    };
+    const banner = h(
+      'div',
+      { class: 'crash-banner', role: 'alert' },
+      h('span', { class: 'crash-text' }, `SOMETHING BROKE: ${crash.message.split('\n')[0]?.slice(0, 80) ?? ''}`),
+      h('button', { class: 'btn btn-small btn-amber', type: 'button', onClick: report }, 'REPORT CRASH'),
+      h('button', { class: 'btn btn-small', type: 'button', onClick: close }, 'DISMISS'),
+    );
+    document.body.append(banner);
+  };
+  window.addEventListener('error', (e) => onCrash(crashFromEvent(e)));
+  window.addEventListener('unhandledrejection', (e) => onCrash(crashFromEvent(e)));
 }
 
 function captureContext(app: App): Record<string, unknown> {
