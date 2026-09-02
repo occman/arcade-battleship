@@ -31,6 +31,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 const app = new App(root);
+installCrashReporter(app);
 app.register('title', titleScreen);
 app.register('difficulty', difficultyScreen);
 app.register('placement', placementScreen);
@@ -39,7 +40,6 @@ app.register('gameover', gameOverScreen);
 app.register('highscores', highScoresScreen);
 app.go('title');
 mountBugButton(app);
-installCrashReporter(app);
 
 // Dev-only console handles for poking at the running game (never shipped in the build).
 if (import.meta.env.DEV) {
