@@ -84,6 +84,13 @@ function isJsonContentType(req: IncomingMessage): boolean {
   return type.split(';')[0]?.trim().toLowerCase() === 'application/json';
 }
 
+/** Responds and then drops the connection so an unread request body cannot keep the socket busy. */
+function reject(req: IncomingMessage, res: ServerResponse, status: number, body: unknown): void {
+  res.setHeader('Connection', 'close');
+  res.once('finish', () => req.destroy());
+  send(res, status, body);
+}
+
 function send(res: ServerResponse, status: number, body: unknown): void {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
@@ -125,7 +132,7 @@ export function devinBugReportPlugin(cfg: DevinConfig): Plugin {
   const handler = async (req: IncomingMessage, res: ServerResponse, next: () => void): Promise<void> => {
     if (req.method !== 'POST') return next();
     if (!isJsonContentType(req)) {
-      return send(res, 415, { error: 'unsupported_media_type', message: 'Content-Type must be application/json' });
+      return reject(req, res, 415, { error: 'unsupported_media_type', message: 'Content-Type must be application/json' });
     }
     try {
       const body = await readJson(req);
@@ -135,11 +142,7 @@ export function devinBugReportPlugin(cfg: DevinConfig): Plugin {
     } catch (err) {
       const e = err as Error & { code?: string };
       if (err instanceof HttpError) {
-        if (err.status === 413) {
-          res.setHeader('Connection', 'close');
-          res.once('finish', () => req.destroy());
-        }
-        send(res, err.status, { error: err.code, message: err.message });
+        reject(req, res, err.status, { error: err.code, message: err.message });
       } else if (e.code === 'not_configured') {
         send(res, 501, {
           error: 'not_configured',
